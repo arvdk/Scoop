@@ -5,7 +5,7 @@ function nightly_version($quiet = $false) {
     return "nightly-$(Get-Date -Format 'yyyyMMdd')"
 }
 
-function install_app($app, $architecture, $global, $suggested, $use_cache = $true, $check_hash = $true) {
+function install_app($app, $architecture, $global, $suggested, $use_cache = $true, $check_hash = $true, $implicit) {
     $app, $manifest, $bucket, $url = Get-Manifest $app
 
     if (!$manifest) {
@@ -70,7 +70,7 @@ function install_app($app, $architecture, $global, $suggested, $use_cache = $tru
 
     # save info for uninstall
     save_installed_manifest $app $bucket $dir $url
-    save_install_info @{ 'architecture' = $architecture; 'url' = $url; 'bucket' = $bucket } $dir
+    save_install_info @{ 'architecture' = $architecture; 'url' = $url; 'bucket' = $bucket; 'implicit' = $implicit } $dir
 
     if ($manifest.suggest) {
         $suggested[$app] = $manifest.suggest

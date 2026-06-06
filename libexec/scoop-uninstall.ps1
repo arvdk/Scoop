@@ -145,12 +145,28 @@ if (!$apps) { exit 0 }
             }
         }
     }
-    
+
     # remove resources from cache
     if ($cache) {
-        Write-Host "Removing cached $app..." -NoNewline 
+        Write-Host "Removing cached $app..." -NoNewline
         Remove-Item "$cachedir\$app#*"
         Write-Host "done." -ForegroundColor Green
+    }
+
+    if($manifest.depends) {
+        foreach ($dep in $manifest.depends) {
+            if (installed $dep) {
+                $depver = Select-CurrentVersion -AppName $dep -Global:$global
+                $install_info_path = "$(versiondir $dep $depver $global)\install.json"
+
+                if (Test-Path $install_info_path) {
+                    $install_info = parse_json $install_info_path
+                    if ($install_info.implicit) {
+                        Write-Host "Note that dependency '$dep' may no longer be needed. To uninstall it, run 'scoop uninstall $dep'" -ForegroundColor Yellow
+                    }
+                }
+            }
+        }
     }
 
     success "'$app' was uninstalled."

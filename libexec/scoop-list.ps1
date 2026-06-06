@@ -1,11 +1,16 @@
-# Usage: scoop list [query]
+# Usage: scoop list [query] <options>
 # Summary: List installed apps
 # Help: Lists all installed apps, or the apps matching the supplied query.
-param($query)
-
+# Options:
+#   -m, --manual             Filter for apps that weren't installed as dependencies (i.e. manually installed apps)
+#   -d, --dependency         Filter for apps installed as dependencies
+. "$PSScriptRoot\..\lib\getopt.ps1"
 . "$PSScriptRoot\..\lib\versions.ps1" # 'Select-CurrentVersion'
 . "$PSScriptRoot\..\lib\manifest.ps1" # 'parse_json' 'Select-CurrentVersion' (indirectly)
 . "$PSScriptRoot\..\lib\download.ps1" # 'Get-UserAgent'
+
+$opt, $query, $err = getopt $args 'md' 'manual', 'dependency'
+if ($err) { "scoop list: $err"; exit 1 }
 
 $defaultArchitecture = Get-DefaultArchitecture
 if (-not (Get-FormatData ScoopApps)) {
@@ -52,7 +57,11 @@ $apps | Where-Object { !$query -or ($_.name -match $query) } | ForEach-Object {
     if ($global) { $info += 'Global install' }
     if (failed $app $global) { $info += 'Install failed' }
     if ($install_info.hold) { $info += 'Held package' }
-    if ($install_info.implicit) { $info += 'Implicitly installed' }
+    if ($install_info.implicit) {
+        if ($opt.m -or $opt.'manual') { return }
+        $info += 'Implicitly installed'
+    }
+    elseif ($opt.d -or $opt.'dependency') { return }
     if ($install_info.architecture -and $defaultArchitecture -ne $install_info.architecture) {
         $info += $install_info.architecture
     }

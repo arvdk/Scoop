@@ -46,7 +46,7 @@ $apps | ForEach-Object {
     }
 
     if ($null -eq $version) {
-        $version = Select-CurrentVersion -AppName $app -Global:$global
+        $version = @(Get-InstalledVersion -AppName $app -Global:$global)[-1]
     }
 
     $manifest = installed_manifest $app $version $global

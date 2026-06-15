@@ -114,25 +114,22 @@ $apps = @((@($specific_versions_paths) + $difference) | Where-Object { $_ } | Se
 $explicit_apps = $apps
 
 if (!$independent) {
-    $implicit_apps = $apps |
-        Get-Dependency -Architecture $architecture |
-        Where-Object { $explicit_apps -notcontains $_ } |
-        Select-Object -Unique
+    $explicit_count = $explicit_apps.Count
 
-    $apps = @(
-        $explicit_apps
-        $implicit_apps
-    ) | Select-Object -Unique
+    $apps = $apps |
+        Get-Dependency -Architecture $architecture |
+        Select-Object -Unique
+    $explicit_apps = $apps | Select-Object -First $explicit_count
+    $implicit_apps = $apps | Select-Object -Skip $explicit_count
 }
 ensure_none_failed $apps
 
-$apps, $skip = prune_installed $apps $global
+$explicit_apps, $skip = prune_installed $explicit_apps $global
+if($implicit_apps.Count -gt 0) {
+    $implicit_apps, $null = prune_installed $implicit_apps $global
+}
 
-$implicit_apps = $implicit_apps |
-    Where-Object { $skip -notcontains $_ } |
-    Select-Object -Unique
-
-$skip | Where-Object { $explicit_apps -contains $_ } | ForEach-Object {
+$skip | ForEach-Object {
     $app, $null, $null = parse_app $_
     $version = Select-CurrentVersion -AppName $app -Global:$global
     warn "'$app' ($version) is already installed. Skipping."
@@ -144,6 +141,7 @@ if ((Test-Aria2Enabled) -and (get_config 'aria2-warning-enabled' $true)) {
     warn "Should it cause issues, run 'scoop config aria2-enabled false' to disable it."
     warn "To disable this warning, run 'scoop config aria2-warning-enabled false'."
 }
+
 $implicit_apps | ForEach-Object { install_app $_ $architecture $global $suggested $use_cache $check_hash $true}
 $explicit_apps | ForEach-Object { install_app $_ $architecture $global $suggested $use_cache $check_hash }
 

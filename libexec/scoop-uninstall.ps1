@@ -148,9 +148,8 @@ if (!$apps) { exit 0 }
 
     # remove resources from cache
     if ($cache) {
-        Write-Host "Removing cached $app..." -NoNewline
+        Write-Host "Removing cached files."
         Remove-Item "$cachedir\$app#*"
-        Write-Host "done." -ForegroundColor Green
     }
 
     if($manifest.depends) {

@@ -29,7 +29,7 @@ if (get_config USE_SQLITE_CACHE) {
     . "$PSScriptRoot\..\lib\database.ps1"
 }
 
-$opt, $apps, $err = getopt $args 'gfiksqa' 'global', 'force', 'independent', 'no-cache', 'skip-hash-check', 'quiet', 'all'
+$opt, $apps, $err = getopt $args 'gfiksrqa' 'global', 'force', 'independent', 'no-cache', 'skip-hash-check', 'ignore-running-processes', 'quiet', 'all'
 if ($err) { "scoop update: $err"; exit 1 }
 $global = $opt.g -or $opt.global
 $force = $opt.f -or $opt.force
@@ -37,6 +37,7 @@ $check_hash = !($opt.s -or $opt.'skip-hash-check')
 $use_cache = !($opt.k -or $opt.'no-cache')
 $quiet = $opt.q -or $opt.quiet
 $independent = $opt.i -or $opt.independent
+$ignore_running_processes = $opt.r -or $opt.'ignore-running-processes'
 $all = $opt.a -or $opt.all
 
 # load config
@@ -294,7 +295,7 @@ function update($app, $global, $quiet = $false, $independent, $suggested, $use_c
     Write-Host "Updating '$app' ($old_version -> $version)"
 
     #region Workaround for #2952
-    if (test_running_process $app $global) {
+    if (!$ignore_running_processes -and (test_running_process $app $global)) {
         Write-Host 'Running process detected, skip updating.'
         return
     }

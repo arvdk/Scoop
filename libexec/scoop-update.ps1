@@ -293,13 +293,6 @@ function update($app, $global, $quiet = $false, $independent, $suggested, $use_c
 
     Write-Host "Updating '$app' ($old_version -> $version)"
 
-    #region Workaround for #2952
-    if (test_running_process $app $global) {
-        Write-Host 'Running process detected, skip updating.'
-        return
-    }
-    #endregion Workaround for #2952
-
     # region Workaround
     # Workaround for https://github.com/ScoopInstaller/Scoop/issues/2220 until install is refactored
     # Remove and replace whole region after proper fix
@@ -331,6 +324,14 @@ function update($app, $global, $quiet = $false, $independent, $suggested, $use_c
             }
         }
     }
+
+    #region Workaround for #2952
+    if (test_running_process $app $global) {
+        Write-Host 'Running process detected, skip updating.'
+        return
+    }
+    #endregion Workaround for #2952
+
     # There is no need to check hash again while installing
     $check_hash = $false
     # endregion Workaround

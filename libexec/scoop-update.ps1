@@ -342,6 +342,14 @@ function update($app, $global, $force = $false, $quiet = $false, $independent, $
             }
         }
     }
+
+    #region Workaround for #2952
+    if (test_running_process $app $global) {
+        Write-Host 'Running process detected, skip updating.'
+        return
+    }
+    #endregion Workaround for #2952
+
     # There is no need to check hash again while installing
     $check_hash = $false
     # endregion Workaround

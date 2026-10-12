@@ -5,6 +5,7 @@
 # Options:
 #   -g, --global   Uninstall a globally installed app
 #   -p, --purge    Remove all persistent data
+#   -k, --cache    Clear chached resources
 
 . "$PSScriptRoot\..\lib\getopt.ps1"
 . "$PSScriptRoot\..\lib\manifest.ps1" # 'Get-Manifest' 'Select-CurrentVersion' (indirectly)
@@ -16,7 +17,7 @@
 . "$PSScriptRoot\..\lib\versions.ps1" # 'Select-CurrentVersion'
 
 # options
-$opt, $apps, $err = getopt $args 'gp' 'global', 'purge'
+$opt, $apps, $err = getopt $args 'gpk' 'global', 'purge', 'cache'
 
 if ($err) {
     error "scoop uninstall: $err"
@@ -25,6 +26,7 @@ if ($err) {
 
 $global = $opt.g -or $opt.global
 $purge = $opt.p -or $opt.purge
+$cache = $opt.k -or $opt.cache
 
 if (!$apps) {
     error '<app> missing'
@@ -144,6 +146,12 @@ if (!$apps) { exit 0 }
                 continue
             }
         }
+    }
+
+    # remove resources from cache
+    if ($cache) {
+        Write-Host "Removing cached files."
+        Remove-Item "$cachedir\$app#*"
     }
 
     success "'$app' was uninstalled."

@@ -30,7 +30,9 @@ if ($global -and !(is_admin)) {
 function cleanup($app, $global, $verbose, $cache) {
     $current_version = Select-CurrentVersion -AppName $app -Global:$global
     if ($cache) {
+        Write-Host "Cleaning cache for $app..." -NoNewline 
         Remove-Item "$cachedir\$app#*" -Exclude "$app#$current_version#*"
+        Write-Host "done." -ForegroundColor Green
     }
     $appDir = appdir $app $global
     $versions = Get-ChildItem $appDir -Name

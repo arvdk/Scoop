@@ -16,7 +16,6 @@
 #>
 param(
     [String] $App = '*',
-    [Parameter(Mandatory = $true)]
     [ValidateScript( {
         if (!(Test-Path $_ -Type Container)) {
             throw "$_ is not a directory!"
@@ -31,7 +30,14 @@ param(
 . "$PSScriptRoot\..\lib\manifest.ps1"
 . "$PSScriptRoot\..\lib\json.ps1"
 
-$Dir = Convert-Path $Dir
+if (Test-Path $App -PathType Leaf) {
+    $Dir = Split-Path $App
+    $App = (Split-Path $App -Leaf).replace(".json","")
+} elseif ($Dir) {
+    $Dir = Convert-Path $Dir
+} else {
+    throw "'-Dir' parameter required if '-App' is not a filepath!"
+}
 
 Get-ChildItem $Dir -Filter "$App.json" -Recurse | ForEach-Object {
     $file = $_.FullName
